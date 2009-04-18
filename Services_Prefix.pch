@@ -1,0 +1,14 @@
+//
+//  Services_Prefix.pch
+//  Services
+//
+//  Created by Martin on 16.04.09.
+//  Copyright Martin Kuehl 2009. All rights reserved.
+//
+
+
+#ifdef __OBJC__
+  #import <Cocoa/Cocoa.h>
+  #import <Vermilion/Vermilion.h>
+  #import <GTM/GTMDefines.h>
+#endif

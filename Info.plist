@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>${EXECUTABLE_NAME}</string>
+	<key>CFBundleName</key>
+	<string>${PRODUCT_NAME}</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.purl.net.mkhl.services</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>HGSPluginAPIVersion</key>
+	<string>${VERMILLION_PLUGIN_API_VERSION}</string>
+	<key>HGSExtensions</key>
+	<array>
+		<dict>
+			<key>HGSExtensionClass</key>
+			<string>ServicesSource</string>
+			<key>HGSExtensionIdentifier</key>
+			<string>org.purl.net.mkhl.services.source</string>
+			<key>HGSExtensionPoint</key>
+			<string>HGSSourcesExtensionPoint</string>
+			<key>HGSExtensionUserVisibleName</key>
+			<string>Services</string>
+			<key>HGSSearchSourcePivotableTypes</key>
+			<array>
+				<string>script.service</string>
+			</array>
+		</dict>
+		<dict>
+			<key>HGSExtensionClass</key>
+			<string>ServicesAction</string>
+			<key>HGSExtensionPoint</key>
+			<string>HGSActionsExtensionPoint</string>
+			<key>HGSExtensionIdentifier</key>
+			<string>org.purl.net.mkhl.services.action.perform</string>
+			<key>HGSActionDirectObjectTypes</key>
+			<array>
+				<string>action.service</string>
+				<string>script.service</string>
+			</array>
+			<key>HGSExtensionUserVisibleName</key>
+			<string>Perform Service</string>
+		</dict>
+	</array>
+</dict>
+</plist>
