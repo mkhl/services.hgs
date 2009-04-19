@@ -60,7 +60,6 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
 
 #pragma mark -
 @interface ServicesSource : HGSCallbackSearchSource
-- (BOOL) isValidSourceForQuery:(HGSQuery *)query;
 - (NSArray *) servicesForQuery:(HGSQuery *)query;
 - (HGSResult *) resultForService:(NSDictionary *)service;
 - (HGSResult *) resultForQuery:(HGSQuery *)query;
@@ -69,16 +68,6 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
 
 #pragma mark -
 @implementation ServicesSource
-
-- (BOOL) isValidSourceForQuery:(HGSQuery *)query
-{
-    HGSResult *pivot = [query pivotObject];
-    if (pivot == nil)
-        return YES;
-    if ([[pivot type] isEqual:kServicesItemResultType])
-        return YES;
-    return NO;
-}
 
 - (NSArray *) servicesForQuery:(HGSQuery *)query
 {
