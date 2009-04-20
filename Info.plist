@@ -32,6 +32,9 @@
 			<key>HGSSearchSourcePivotableTypes</key>
 			<array>
 				<string>script.service</string>
+				<string>webpage</string>
+				<string>file</string>
+				<string>text</string>
 			</array>
 		</dict>
 		<dict>
