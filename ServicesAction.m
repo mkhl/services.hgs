@@ -1,9 +1,8 @@
 //
 //  ServicesAction.m
-//  Services
 //
-//  Created by mkhl on 16.04.09.
-//  Copyright Martin Kuehl 2009. All rights reserved.
+//  Copyright (c) 2009  Martin Kuehl <purl.org/net/mkhl>
+//  Licensed under the MIT License.
 //
 
 #import <Vermilion/Vermilion.h>
