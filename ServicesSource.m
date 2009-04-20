@@ -43,7 +43,7 @@ static NSSet *_ServicesPboardTypesForResult(const HGSResult *result)
     return [NSSet setWithObject:NSStringPboardType];
 }
 
-static NSPredicate *_ServicesPredicateFromQuery(const HGSQuery *query)
+static NSPredicate *_ServicesPredicateForQuery(const HGSQuery *query)
 {
     return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:[query uniqueWords]]
                                               rightExpression:[NSExpression expressionForKeyPath:kServicesEntryNameKeyPath]
@@ -108,7 +108,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
 - (NSArray *) servicesForQuery:(HGSQuery *)query
 {
     NSArray *services = CFServiceControllerCopyServicesEntries();
-    NSPredicate *byName = _ServicesPredicateFromQuery(query);
+    NSPredicate *byName = _ServicesPredicateForQuery(query);
     HGSResult *pivot = [query pivotObject];
     if (pivot == nil)
         return [services filteredArrayUsingPredicate:byName];
