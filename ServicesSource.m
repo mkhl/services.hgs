@@ -49,12 +49,12 @@ static HGSAction *_ServicesPerformAction(void)
     return [[HGSExtensionPoint actionsPoint] extensionWithIdentifier:kServicesPerformAction];
 }
 
-static NSURL *_ServicesURLForService(NSString *name)
+static NSURL *_ServicesURLForService(const NSString *name)
 {
     return [NSURL URLWithString:[NSString stringWithFormat:kServicesURLFormat, [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 }
 
-static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
+static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
 {
     return [NSURL URLWithString:[query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] relativeToURL:_ServicesURLForService(name)];
 }
