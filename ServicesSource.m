@@ -33,13 +33,13 @@ static NSString *kServicesURLFormat = @"qsb-service://%@";
 #pragma mark Helper Functions
 NSArray *CFServiceControllerCopyServicesEntries(void);
 
-static NSSet *_ServicesPboardTypesForResult(const HGSResult *result)
+static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
 {
     if ([result conformsToType:kHGSTypeWebpage])
-        return [NSSet setWithObjects:NSStringPboardType, NSURLPboardType, nil];
+        return [NSArray arrayWithObjects:NSStringPboardType, NSURLPboardType, nil];
     if ([result conformsToType:kHGSTypeFile])
-        return [NSSet setWithObjects:NSStringPboardType, NSFilenamesPboardType, nil];
-    return [NSSet setWithObject:NSStringPboardType];
+        return [NSArray arrayWithObjects:NSStringPboardType, NSFilenamesPboardType, nil];
+    return [NSArray arrayWithObject:NSStringPboardType];
 }
 
 static NSPredicate *_ServicesPredicateForQuery(const HGSQuery *query)
