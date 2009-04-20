@@ -34,6 +34,15 @@ static NSString *kServicesURLFormat = @"qsb-service://%@";
 #pragma mark Helper Functions
 NSArray *CFServiceControllerCopyServicesEntries(void);
 
+static NSSet *_ServicesPboardTypesForResult(const HGSResult *result)
+{
+    if ([result conformsToType:kHGSTypeWebpage])
+        return [NSSet setWithObjects:NSStringPboardType, NSURLPboardType, nil];
+    if ([result conformsToType:kHGSTypeFile])
+        return [NSSet setWithObjects:NSStringPboardType, NSFilenamesPboardType, nil];
+    return [NSSet setWithObject:NSStringPboardType];
+}
+
 static NSPredicate *_ServicesPredicateFromQuery(const HGSQuery *query)
 {
     return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:[query uniqueWords]]
@@ -42,6 +51,15 @@ static NSPredicate *_ServicesPredicateFromQuery(const HGSQuery *query)
                                                          type:NSInPredicateOperatorType
                                                       options:(NSCaseInsensitivePredicateOption |
                                                                NSDiacriticInsensitivePredicateOption)];
+}
+
+static NSPredicate *_ServicesPredicateForResult(const HGSResult *result)
+{
+    return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:_ServicesPboardTypesForResult(result)]
+                                              rightExpression:[NSExpression expressionForKeyPath:kServicesEntrySendTypesKey]
+                                                     modifier:NSAnyPredicateModifier
+                                                         type:NSInPredicateOperatorType
+                                                      options:0];
 }
 
 static HGSAction *_ServicesPerformAction(void)
@@ -91,7 +109,11 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
 {
     NSArray *services = CFServiceControllerCopyServicesEntries();
     NSPredicate *byName = _ServicesPredicateFromQuery(query);
-    return [services filteredArrayUsingPredicate:byName];
+    HGSResult *pivot = [query pivotObject];
+    if (pivot == nil)
+        return [services filteredArrayUsingPredicate:byName];
+    NSPredicate *byType = _ServicesPredicateForResult(pivot);
+    return [services filteredArrayUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:byName, byType, nil]]];
 }
 
 - (HGSResult *) resultForService:(NSDictionary *)service
