@@ -90,7 +90,8 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
 - (NSArray *) servicesForQuery:(HGSQuery *)query
 {
     NSMutableArray *services = [[CFServiceControllerCopyServicesEntries() mutableCopy] autorelease];
-    [services filterUsingPredicate:_ServicesPredicateFromQuery(query)];
+    NSPredicate *byName = _ServicesPredicateFromQuery(query);
+    [services filterUsingPredicate:byName];
     return services;
 }
 
