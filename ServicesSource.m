@@ -78,7 +78,7 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
     HGSResult *pivot = [query pivotObject];
     if (pivot == nil)
         return YES;
-    if ([[pivot type] isEqual:kServicesItemResultType]) {
+    if ([pivot isOfType:kServicesItemResultType]) {
         if ([[query uniqueWords] count] == 0)
             return NO;
         if (![[[pivot valueForKey:kServicesItemKey] objectForKey:kServicesEntrySendTypesKey] containsObject:NSStringPboardType])
@@ -142,7 +142,7 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
 {
     HGSQuery *query = [operation query];
     HGSResult *pivot = [query pivotObject];
-    if (pivot && [[pivot type] isEqual:kServicesItemResultType]) {
+    if (pivot && [pivot isOfType:kServicesItemResultType]) {
         [operation setResults:[NSArray arrayWithObject:[self resultForQuery:query]]];
         return;
     }
