@@ -36,8 +36,15 @@ NSArray *CFServiceControllerCopyServicesEntries(void);
 
 static NSPredicate *_ServicesPredicateFromQuery(const HGSQuery *query)
 {
-    return [NSPredicate predicateWithFormat:@"%K contains[cd] %@",
-            kServicesEntryNameKeyPath, [query rawQueryString]];
+    NSExpression *words = [NSExpression expressionForConstantValue:[query uniqueWords]];
+    NSExpression *name = [NSExpression expressionForKeyPath:kServicesEntryNameKeyPath];
+    return [NSComparisonPredicate
+            predicateWithLeftExpression:words
+            rightExpression:name
+            modifier:NSAllPredicateModifier
+            type:NSInPredicateOperatorType
+            options:(NSCaseInsensitivePredicateOption |
+                     NSDiacriticInsensitivePredicateOption)];
 }
 
 static HGSAction *_ServicesPerformAction(void)
