@@ -99,7 +99,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     if ([pivot isOfType:kServicesItemResultType]) {
         if ([[query uniqueWords] count] == 0)
             return NO;
-        if (![[[pivot valueForKey:kServicesItemKey] objectForKey:kServicesEntrySendTypesKey] containsObject:NSStringPboardType])
+        if (![_ServicesPredicateForResult(pivot) evaluateWithObject:[pivot valueForKey:kServicesItemKey]])
             return NO;
     }
     return YES;
