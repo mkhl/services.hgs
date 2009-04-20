@@ -36,33 +36,27 @@ NSArray *CFServiceControllerCopyServicesEntries(void);
 
 static NSPredicate *_ServicesPredicateFromQuery(const HGSQuery *query)
 {
-    NSExpression *words = [NSExpression expressionForConstantValue:[query uniqueWords]];
-    NSExpression *name = [NSExpression expressionForKeyPath:kServicesEntryNameKeyPath];
-    return [NSComparisonPredicate
-            predicateWithLeftExpression:words
-            rightExpression:name
-            modifier:NSAllPredicateModifier
-            type:NSInPredicateOperatorType
-            options:(NSCaseInsensitivePredicateOption |
-                     NSDiacriticInsensitivePredicateOption)];
+    return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:[query uniqueWords]]
+                                              rightExpression:[NSExpression expressionForKeyPath:kServicesEntryNameKeyPath]
+                                                     modifier:NSAllPredicateModifier
+                                                         type:NSInPredicateOperatorType
+                                                      options:(NSCaseInsensitivePredicateOption |
+                                                               NSDiacriticInsensitivePredicateOption)];
 }
 
 static HGSAction *_ServicesPerformAction(void)
 {
-    return [[HGSExtensionPoint actionsPoint]
-            extensionWithIdentifier:kServicesPerformAction];
+    return [[HGSExtensionPoint actionsPoint] extensionWithIdentifier:kServicesPerformAction];
 }
 
 static NSURL *_ServicesURLForService(NSString *name)
 {
-    return [NSURL URLWithString:[NSString stringWithFormat:kServicesURLFormat,
-                                 [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+    return [NSURL URLWithString:[NSString stringWithFormat:kServicesURLFormat, [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 }
 
 static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
 {
-    return [NSURL URLWithString:[query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
-                  relativeToURL:_ServicesURLForService(name)];
+    return [NSURL URLWithString:[query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] relativeToURL:_ServicesURLForService(name)];
 }
 
 #pragma mark -
@@ -87,9 +81,7 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
     if ([[pivot type] isEqual:kServicesItemResultType]) {
         if ([[query uniqueWords] count] == 0)
             return NO;
-        if (![[[pivot valueForKey:kServicesItemKey]
-               objectForKey:kServicesEntrySendTypesKey]
-              containsObject:NSStringPboardType])
+        if (![[[pivot valueForKey:kServicesItemKey] objectForKey:kServicesEntrySendTypesKey] containsObject:NSStringPboardType])
             return NO;
     }
     return YES;
@@ -107,8 +99,7 @@ static NSURL *_ServicesURLForQuery(NSString *name, NSString *query)
     NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
     NSString *name = [service valueForKeyPath:kServicesEntryNameKeyPath];
     NSString *path = [service valueForKey:kServicesEntryBundlePathKey];
-    [attrs setObject:[NSString stringWithFormat:kServicesSnippetFormat,
-                      [[NSFileManager defaultManager] displayNameAtPath:path]]
+    [attrs setObject:[NSString stringWithFormat:kServicesSnippetFormat, [[NSFileManager defaultManager] displayNameAtPath:path]]
               forKey:kHGSObjectAttributeSnippetKey];
     [attrs setObject:[[NSWorkspace sharedWorkspace] iconForFile:path]
               forKey:kHGSObjectAttributeIconKey];
