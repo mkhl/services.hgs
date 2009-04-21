@@ -42,6 +42,28 @@ static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
     return [NSArray arrayWithObject:NSStringPboardType];
 }
 
+static id _ServicesObjectForType(const NSString *type, const HGSResult *result)
+{
+    if ([type isEqual:NSURLPboardType])
+        return [result url];
+    if ([type isEqual:NSFilenamesPboardType])
+        return [NSArray arrayWithObject:[[result url] absoluteString]];
+    return [[result url] absoluteString];
+}
+
+static NSDictionary *_ServicesDataForQuery(const NSString *query)
+{
+    return [NSDictionary dictionaryWithObject:query forKey:NSStringPboardType];
+}
+
+static NSDictionary *_ServicesDataForResult(const HGSResult *result)
+{
+    NSMutableDictionary *data = [NSMutableDictionary dictionary];
+    for (NSString *type in _ServicesPboardTypesForResult(result))
+        [data setObject:_ServicesObjectForType(type, result) forKey:type];
+    return data;
+}
+
 static NSPredicate *_ServicesPredicateForQuery(const HGSQuery *query)
 {
     return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:[query uniqueWords]]
@@ -80,7 +102,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
 @interface ServicesSource : HGSCallbackSearchSource
 - (BOOL) isValidSourceForQuery:(HGSQuery *)query;
 - (NSArray *) servicesForQuery:(HGSQuery *)query;
-- (HGSResult *) resultForService:(NSDictionary *)service;
+- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot;
 - (HGSResult *) resultForQuery:(HGSQuery *)query;
 - (void) performSearchOperation:(HGSSearchOperation *)operation;
 @end
@@ -115,7 +137,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     return [services filteredArrayUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:byName, byType, nil]]];
 }
 
-- (HGSResult *) resultForService:(NSDictionary *)service
+- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot
 {
     NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
     NSString *name = [service valueForKeyPath:kServicesEntryNameKeyPath];
@@ -129,6 +151,9 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     HGSAction *action = _ServicesPerformAction();
     if (action) {
         [attrs setObject:action forKey:kHGSObjectAttributeDefaultActionKey];
+    }
+    if (pivot) {
+        [attrs setObject:_ServicesDataForResult(pivot) forKey:kServicesDataKey];
     }
     return [HGSResult resultWithURL:_ServicesURLForService(name)
                                name:[name lastPathComponent]
@@ -145,7 +170,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     NSString *name = [pivot valueForKey:kServicesNameKey];
     [attrs setObject:name forKey:kServicesNameKey];
     [attrs setObject:[pivot valueForKey:kServicesItemKey] forKey:kServicesItemKey];
-    [attrs setObject:queryString forKey:kServicesDataKey];
+    [attrs setObject:_ServicesDataForQuery(queryString) forKey:kServicesDataKey];
     HGSAction *action = _ServicesPerformAction();
     if (action) {
         [attrs setObject:action forKey:kHGSObjectAttributeDefaultActionKey];
@@ -169,7 +194,7 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     NSArray *services = [self servicesForQuery:query];
     NSMutableArray *results = [NSMutableArray arrayWithCapacity:[services count]];
     for (NSDictionary *service in services)
-        [results addObject:[self resultForService:service]];
+        [results addObject:[self resultForService:service withPivot:pivot]];
     [operation setResults:results];
 }
 

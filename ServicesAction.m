@@ -31,24 +31,34 @@ extern NSString *kServicesItemResultType;
 #pragma mark -
 @implementation ServicesAction
 
+- (void) writeObject:(id)object withType:(NSString *)type toPasteboard:(NSPasteboard *)pboard
+{
+    if ([type isEqual:NSURLPboardType]) {
+        [object writeToPasteboard:pboard];
+    } else if ([type isEqual:NSFilenamesPboardType]) {
+        [pboard setPropertyList:object forType:type];
+    } else if ([type isEqual:NSStringPboardType]) {
+        [pboard setString:object forType:type];
+    }
+}
+
 - (BOOL) performWithInfo:(NSDictionary *)info
 {
     HGSResultArray *directObjects = [info objectForKey:kHGSActionDirectObjectsKey];
     if (directObjects == nil)
         return NO;
     HGSResult *result = [directObjects lastObject];
-    NSString *name = [result valueForKey:kServicesNameKey];
-    NSString *data = [result valueForKey:kServicesDataKey];
     NSPasteboard *pboard = [NSPasteboard pasteboardWithUniqueName];
-    // TODO(mkhl): None of this handles other data types yet.
-    //   Maybe wait for NSPasteboard handling to be finished?
-    if ([[result type] isEqual:kServicesDataResultType]) {
-        [pboard declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:self];
-        [pboard setString:data forType:NSStringPboardType];
+    NSDictionary *data = [result valueForKey:kServicesDataKey];
+    if (data) {
+        [pboard declareTypes:[data allKeys] owner:self];
+        for (NSString *type in data) {
+            [self writeObject:[data objectForKey:type] withType:type toPasteboard:pboard];
+        }
     }
     // TODO(mkhl): Without explicit data, we should maybe get some from the
     //   active application (via AXUI)?
-    if (!NSPerformService(name, pboard))
+    if (!NSPerformService([result valueForKey:kServicesNameKey], pboard))
         return NO;
     // TODO(mkhl): We should handle the data our service might have produced.
     return YES;
