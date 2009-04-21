@@ -83,11 +83,6 @@ static NSPredicate *_ServicesPredicateForResult(const HGSResult *result)
                                                       options:0];
 }
 
-static HGSAction *_ServicesPerformAction(void)
-{
-    return [[HGSExtensionPoint actionsPoint] extensionWithIdentifier:kServicesPerformAction];
-}
-
 static NSURL *_ServicesURLForService(const NSString *name)
 {
     return [NSURL URLWithString:[NSString stringWithFormat:kServicesURLFormat, [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
@@ -98,12 +93,17 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     return [NSURL URLWithString:[query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] relativeToURL:_ServicesURLForService(name)];
 }
 
+static HGSAction *_ServicesPerformAction(void)
+{
+    return [[HGSExtensionPoint actionsPoint] extensionWithIdentifier:kServicesPerformAction];
+}
+
 #pragma mark -
 @interface ServicesSource : HGSCallbackSearchSource
 - (BOOL) isValidSourceForQuery:(HGSQuery *)query;
 - (NSArray *) servicesForQuery:(HGSQuery *)query;
-- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot;
 - (HGSResult *) resultForQuery:(HGSQuery *)query;
+- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot;
 - (void) performSearchOperation:(HGSSearchOperation *)operation;
 @end
 
@@ -131,10 +131,32 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     NSArray *services = CFServiceControllerCopyServicesEntries();
     NSPredicate *byName = _ServicesPredicateForQuery(query);
     HGSResult *pivot = [query pivotObject];
-    if (pivot == nil)
+    if (pivot == nil) {
         return [services filteredArrayUsingPredicate:byName];
+    }
     NSPredicate *byType = _ServicesPredicateForResult(pivot);
     return [services filteredArrayUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:byName, byType, nil]]];
+}
+
+- (HGSResult *) resultForQuery:(HGSQuery *)query
+{
+    NSString *queryString = [query rawQueryString];
+    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
+    HGSResult *pivot = [query pivotObject];
+    NSString *name = [pivot valueForKey:kServicesNameKey];
+    [attrs setObject:name forKey:kServicesNameKey];
+    [attrs setObject:[pivot valueForKey:kServicesItemKey] forKey:kServicesItemKey];
+    [attrs setObject:_ServicesDataForQuery(queryString) forKey:kServicesDataKey];
+    HGSAction *action = _ServicesPerformAction();
+    if (action) {
+        [attrs setObject:action forKey:kHGSObjectAttributeDefaultActionKey];
+        [attrs setObject:[action icon] forKey:kHGSObjectAttributeIconKey];
+    }
+    return [HGSResult resultWithURL:_ServicesURLForQuery(name, queryString)
+                               name:[NSString stringWithFormat:kServicesDataNameFormat, queryString]
+                               type:kServicesDataResultType
+                             source:self
+                         attributes:attrs];
 }
 
 - (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot
@@ -162,27 +184,6 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
                          attributes:attrs];
 }
 
-- (HGSResult *) resultForQuery:(HGSQuery *)query
-{
-    NSString *queryString = [query rawQueryString];
-    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
-    HGSResult *pivot = [query pivotObject];
-    NSString *name = [pivot valueForKey:kServicesNameKey];
-    [attrs setObject:name forKey:kServicesNameKey];
-    [attrs setObject:[pivot valueForKey:kServicesItemKey] forKey:kServicesItemKey];
-    [attrs setObject:_ServicesDataForQuery(queryString) forKey:kServicesDataKey];
-    HGSAction *action = _ServicesPerformAction();
-    if (action) {
-        [attrs setObject:action forKey:kHGSObjectAttributeDefaultActionKey];
-        [attrs setObject:[action icon] forKey:kHGSObjectAttributeIconKey];
-    }
-    return [HGSResult resultWithURL:_ServicesURLForQuery(name, queryString)
-                               name:[NSString stringWithFormat:kServicesDataNameFormat, queryString]
-                               type:kServicesDataResultType
-                             source:self
-                         attributes:attrs];
-}
-
 - (void) performSearchOperation:(HGSSearchOperation *)operation
 {
     HGSQuery *query = [operation query];
@@ -193,8 +194,9 @@ static NSURL *_ServicesURLForQuery(const NSString *name, const NSString *query)
     }
     NSArray *services = [self servicesForQuery:query];
     NSMutableArray *results = [NSMutableArray arrayWithCapacity:[services count]];
-    for (NSDictionary *service in services)
+    for (NSDictionary *service in services) {
         [results addObject:[self resultForService:service withPivot:pivot]];
+    }
     [operation setResults:results];
 }
 
