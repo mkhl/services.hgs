@@ -6,6 +6,7 @@
 //
 
 #import <Vermilion/Vermilion.h>
+#import <Vermilion/HGSTokenizer.h>
 
 #pragma mark ServiceEntry Keys
 NSString *kServicesEntryNameKeyPath = @"NSMenuItem.default";
@@ -64,14 +65,9 @@ static NSDictionary *_ServicesDataForResult(const HGSResult *result)
     return data;
 }
 
-static NSPredicate *_ServicesPredicateForQuery(const HGSQuery *query)
+static CGFloat _ServicesScoreForQuery(const NSDictionary *service, const HGSQuery *query)
 {
-    return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:[query uniqueWords]]
-                                              rightExpression:[NSExpression expressionForKeyPath:kServicesEntryNameKeyPath]
-                                                     modifier:NSAllPredicateModifier
-                                                         type:NSInPredicateOperatorType
-                                                      options:(NSCaseInsensitivePredicateOption |
-                                                               NSDiacriticInsensitivePredicateOption)];
+    return HGSScoreForAbbreviation([HGSTokenizer tokenizeString:[service valueForKeyPath:kServicesEntryNameKeyPath]], [query normalizedQueryString], NULL);
 }
 
 static NSPredicate *_ServicesPredicateForResult(const HGSResult *result)
@@ -103,7 +99,7 @@ static HGSAction *_ServicesPerformAction(void)
 - (BOOL) isValidSourceForQuery:(HGSQuery *)query;
 - (NSArray *) servicesForQuery:(HGSQuery *)query;
 - (HGSResult *) resultForQuery:(HGSQuery *)query;
-- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot;
+- (HGSResult *) resultForService:(NSDictionary *)service pivot:(HGSResult *)pivot score:(CGFloat)score;
 - (void) performSearchOperation:(HGSSearchOperation *)operation;
 @end
 
@@ -118,7 +114,7 @@ static HGSAction *_ServicesPerformAction(void)
     if (pivot == nil)
         return YES;
     if ([pivot isOfType:kServicesItemResultType]) {
-        if ([[query uniqueWords] count] == 0)
+        if ([[query normalizedQueryString] length] == 0)
             return NO;
         if (![_ServicesPredicateForResult(pivot) evaluateWithObject:[pivot valueForKey:kServicesItemKey]])
             return NO;
@@ -129,13 +125,11 @@ static HGSAction *_ServicesPerformAction(void)
 - (NSArray *) servicesForQuery:(HGSQuery *)query
 {
     NSArray *services = CFServiceControllerCopyServicesEntries();
-    NSPredicate *byName = _ServicesPredicateForQuery(query);
     HGSResult *pivot = [query pivotObject];
     if (pivot == nil) {
-        return [services filteredArrayUsingPredicate:byName];
+        return services;
     }
-    NSPredicate *byType = _ServicesPredicateForResult(pivot);
-    return [services filteredArrayUsingPredicate:[NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:byName, byType, nil]]];
+    return [services filteredArrayUsingPredicate:_ServicesPredicateForResult(pivot)];
 }
 
 - (HGSResult *) resultForQuery:(HGSQuery *)query
@@ -159,7 +153,7 @@ static HGSAction *_ServicesPerformAction(void)
                          attributes:attrs];
 }
 
-- (HGSResult *) resultForService:(NSDictionary *)service withPivot:(HGSResult *)pivot
+- (HGSResult *) resultForService:(NSDictionary *)service pivot:(HGSResult *)pivot score:(CGFloat)score
 {
     NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
     NSString *name = [service valueForKeyPath:kServicesEntryNameKeyPath];
@@ -168,6 +162,8 @@ static HGSAction *_ServicesPerformAction(void)
               forKey:kHGSObjectAttributeSnippetKey];
     [attrs setObject:[[NSWorkspace sharedWorkspace] iconForFile:path]
               forKey:kHGSObjectAttributeIconKey];
+    [attrs setObject:[NSNumber numberWithFloat:score]
+              forKey:kHGSObjectAttributeRankKey];
     [attrs setObject:service forKey:kServicesItemKey];
     [attrs setObject:name forKey:kServicesNameKey];
     HGSAction *action = _ServicesPerformAction();
@@ -193,9 +189,12 @@ static HGSAction *_ServicesPerformAction(void)
         return;
     }
     NSArray *services = [self servicesForQuery:query];
-    NSMutableArray *results = [NSMutableArray arrayWithCapacity:[services count]];
+    NSMutableArray *results = [NSMutableArray array];
     for (NSDictionary *service in services) {
-        [results addObject:[self resultForService:service withPivot:pivot]];
+        CGFloat score = _ServicesScoreForQuery(service, query);
+        if (score > 0) {
+            [results addObject:[self resultForService:service pivot:pivot score:score]];
+        }
     }
     [operation setResults:results];
 }
