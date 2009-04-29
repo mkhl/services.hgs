@@ -37,9 +37,9 @@ NSArray *CFServiceControllerCopyServicesEntries(void);
 static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
 {
     if ([result conformsToType:kHGSTypeWebpage])
-        return [NSArray arrayWithObjects:NSStringPboardType, NSURLPboardType, nil];
+        return [NSArray arrayWithObject:NSURLPboardType];
     if ([result conformsToType:kHGSTypeFile])
-        return [NSArray arrayWithObjects:NSStringPboardType, NSFilenamesPboardType, nil];
+        return [NSArray arrayWithObject:NSFilenamesPboardType];
     return [NSArray arrayWithObject:NSStringPboardType];
 }
 
