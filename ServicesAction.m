@@ -20,7 +20,6 @@ extern NSString *kServicesItemKey;
 extern NSString *kServicesNameKey;
 
 #pragma mark HGSResult Types
-extern NSString *kServicesDataResultType;
 extern NSString *kServicesItemResultType;
 
 #pragma mark -

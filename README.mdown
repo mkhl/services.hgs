@@ -5,23 +5,16 @@ menu][services].
 
 ## Usage
 
-* Hit your QSB keyboard shortcut.
-* Type the name of the service you want to summon it, e.g. "Open URL".  
-  Each service item will have the icon of its containing application or bundle
-  and a short description of the form "A service of …".
-* Optionally, "tab" into the service and enter some data, e.g. "google.com".
-* Hit enter to perform the service on the text you just entered.
-
-Or go the other way around:
-
 * Hit you QSB keyboard shortcut.
 * Find an object to invoke a service on, like a file, a URL or some text, and
-  Tab into that object.
+  *Tab* into that object.  
+  *[Hint: To get a text object, type an initial space.]*
 * Type the name of the service you want to summon.
 * Hit enter to perform the service on the object you found before.
 
-Note that some services _require_ being provided with data, and will signal an
-error if none is provided.
+Services will only become available when they can accept the data QSB would
+provide them. Services that don’t accept any input data can be invoked without
+providing any.
 
 ## Installation Instructions
 
@@ -29,7 +22,7 @@ After extracting the plugin, you will find a bundle called `Services.hgs`.
 Copy this bundle to `~/Library/Application Support/Google/Quick Search
 Box/PlugIns`, then restart QSB.
 
-If you build the plugin from source (described below), you will find the
+If you built the plugin from source (described below), you will find the
 `Services.hgs` bundle in your `build` directory.
 
 ## Build Instructions

@@ -31,7 +31,6 @@
 			<string>Services</string>
 			<key>HGSSearchSourcePivotableTypes</key>
 			<array>
-				<string>script.service</string>
 				<string>webpage</string>
 				<string>file</string>
 				<string>text</string>
@@ -46,7 +45,6 @@
 			<string>org.purl.net.mkhl.services.action.perform</string>
 			<key>HGSActionDirectObjectTypes</key>
 			<array>
-				<string>action.service</string>
 				<string>script.service</string>
 			</array>
 			<key>HGSExtensionUserVisibleName</key>
