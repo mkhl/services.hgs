@@ -28,7 +28,7 @@
 			<key>HGSExtensionPoint</key>
 			<string>HGSSourcesExtensionPoint</string>
 			<key>HGSExtensionUserVisibleName</key>
-			<string>Services</string>
+			<string>Services Menu</string>
 			<key>HGSSearchSourcePivotableTypes</key>
 			<array>
 				<string>webpage</string>
