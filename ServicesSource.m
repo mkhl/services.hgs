@@ -50,7 +50,7 @@ static id _ServicesObjectForType(const NSString *type, const HGSResult *result)
     if ([type isEqual:NSFilenamesPboardType])
         return [NSArray arrayWithObject:[[result url] path]];
     if ([type isEqual:NSStringPboardType])
-        return [[result url] absoluteString];
+        return [result displayName];
     return nil;
 }
 
