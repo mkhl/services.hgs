@@ -1,22 +1,23 @@
 # Services Plugin for Google QSB
 
 A [Google Quick Search Box][qsb] plugin to enable access to the [Services
-menu][services].
+menu][services-menu].
 
 ## Usage
 
 * Hit you QSB keyboard shortcut.
 * Find an object to invoke a service on, like a file, a URL or some text, and
-  *Tab* into that object.  
+  *tab* into that object.  
   *[Hint: To get a text object, type an initial space.]*
-* Type the name of the service you want to summon.
-* Hit enter to perform the service on the object you found before.
+* Type the (partial) name of the service you want to invoke.
+* Select the matching object from the result list.
+* Hit enter to perform the service on the object you provided.
 
 Services will only become available when they can accept the data QSB would
 provide them. Services that don’t accept any input data can be invoked without
-providing any.
+providing anything.
 
-## Installation Instructions
+## Installation
 
 After extracting the plugin, you will find a bundle called `Services.hgs`.
 Copy this bundle to `~/Library/Application Support/Google/Quick Search
@@ -25,7 +26,7 @@ Box/PlugIns`, then restart QSB.
 If you built the plugin from source (described below), you will find the
 `Services.hgs` bundle in your `build` directory.
 
-## Build Instructions
+## Building
 
 Building this plugin requires that you set up two source trees in Xcode. You
 will have to have the QuickSearchBox source tree downloaded to your machine.
@@ -57,4 +58,4 @@ If you are developing plugins, please join our mailing list:
 http://groups.google.com/group/qsb-mac-dev
 
 [qsb]: http://code.google.com/p/qsb-mac/
-[services]: http://en.wikipedia.org/wiki/Services_menu
+[services-menu]: http://en.wikipedia.org/wiki/Services_menu
