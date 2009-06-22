@@ -3,6 +3,8 @@
 A [Google Quick Search Box][qsb] plugin to enable access to the [Services
 menu][services-menu].
 
+**Download the plugin: <http://github.com/mkhl/services.hgs/downloads>**
+
 ## Usage
 
 * Hit you QSB keyboard shortcut.
