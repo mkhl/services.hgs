@@ -6,169 +6,221 @@
 //
 
 #import <Vermilion/Vermilion.h>
-#import <Vermilion/HGSTokenizer.h>
+#import "Macros.h"
 
 #pragma mark ServiceEntry Keys
-NSString *kServicesEntryNameKeyPath = @"NSMenuItem.default";
-NSString *kServicesEntryBundleIdentifierKey = @"NSBundleIdentifier";
-NSString *kServicesEntryBundlePathKey = @"NSBundlePath";
-NSString *kServicesEntryReturnTypesKey = @"NSReturnTypes";
-NSString *kServicesEntrySendTypesKey = @"NSSendTypes";
+NSString *const kServicesEntryNameKeyPath = @"NSMenuItem.default";
+NSString *const kServicesEntryBundleIdentifierKey = @"NSBundleIdentifier";
+NSString *const kServicesEntryBundlePathKey = @"NSBundlePath";
+NSString *const kServicesEntryReturnTypesKey = @"NSReturnTypes";
+NSString *const kServicesEntrySendTypesKey = @"NSSendTypes";
 
 #pragma mark HGSResult Keys
-NSString *kServicesDataKey = @"ServicesData";
-NSString *kServicesItemKey = @"ServicesItem";
-NSString *kServicesNameKey = @"ServicesName";
+NSString *const kServicesDataKey = @"ServicesData";
+NSString *const kServicesItemKey = @"ServicesItem";
+NSString *const kServicesNameKey = @"ServicesName";
 
 #pragma mark HGSResult Types
-NSString *kServicesItemResultType = HGS_SUBTYPE(@"script", @"service");
+NSString *const kServicesItemResultType = @"service";
 
 #pragma mark Static Data
-static NSString *kServicesSnippetFormat = @"A service of %@";
-static NSString *kServicesPerformAction = @"org.purl.net.mkhl.services.action.perform";
-static NSString *kServicesURLFormat = @"qsb-service://%@";
+static NSString *const kServicesURLFormat = @"qsb-service://%@";
+static NSString *const kServicesSnippetFormat = @"A service of %@";
+static NSString *const kServicesPerformAction
+  = @"org.purl.net.mkhl.services.action.perform";
 
 #pragma mark -
-#pragma mark Helper Functions
+#pragma mark List of Services
 NSArray *CFServiceControllerCopyServicesEntries(void);
 
-static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
+static NSArray *_ServicesList(void)
 {
-    if ([result conformsToType:kHGSTypeWebpage])
-        return [NSArray arrayWithObject:NSURLPboardType];
-    if ([result conformsToType:kHGSTypeFile])
-        return [NSArray arrayWithObject:NSFilenamesPboardType];
-    if ([result conformsToType:kHGSTypeText])
-        return [NSArray arrayWithObject:NSStringPboardType];
-    return nil;
+  return [CFServiceControllerCopyServicesEntries() autorelease];
 }
 
-static id _ServicesObjectForType(const NSString *type, const HGSResult *result)
-{
-    if ([type isEqual:NSURLPboardType])
-        return [result url];
-    if ([type isEqual:NSFilenamesPboardType])
-        return [NSArray arrayWithObject:[[result url] path]];
-    if ([type isEqual:NSStringPboardType])
-        return [result displayName];
-    return nil;
-}
-
-static NSDictionary *_ServicesDataForResult(const HGSResult *result)
-{
-    NSMutableDictionary *data = [NSMutableDictionary dictionary];
-    for (NSString *type in _ServicesPboardTypesForResult(result))
-        [data setObject:_ServicesObjectForType(type, result) forKey:type];
-    return data;
-}
-
-static CGFloat _ServicesScoreForQuery(const NSDictionary *service, const HGSQuery *query)
-{
-    return HGSScoreForAbbreviation([HGSTokenizer tokenizeString:[service valueForKeyPath:kServicesEntryNameKeyPath]], [query normalizedQueryString], NULL);
-}
-
+#pragma mark -
+#pragma mark Result representing the Service
 static NSString *_ServicesSnippetForName(const NSString *name)
 {
-    return [NSString stringWithFormat:kServicesSnippetFormat, name];
+  return [NSString stringWithFormat:kServicesSnippetFormat, name];
 }
 
 static NSURL *_ServicesURLForName(const NSString *name)
 {
-    return [NSURL URLWithString:[NSString stringWithFormat:kServicesURLFormat, [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+  NSString *escaped
+    = [name stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+  NSString *uri = [NSString stringWithFormat:kServicesURLFormat, escaped];
+  return [NSURL URLWithString:uri];
 }
 
 static HGSAction *_ServicesDefaultAction(void)
 {
-    return [[HGSExtensionPoint actionsPoint] extensionWithIdentifier:kServicesPerformAction];
-}
-
-static NSPredicate *_ServicesPredicateIsNil(void)
-{
-    return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:nil]
-                                              rightExpression:[NSExpression expressionForKeyPath:kServicesEntrySendTypesKey]
-                                                     modifier:NSDirectPredicateModifier
-                                                         type:NSEqualToPredicateOperatorType
-                                                      options:0];
-}
-
-static NSPredicate *_ServicesPredicateAnyIn(const HGSResult *result)
-{
-    return [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForConstantValue:_ServicesPboardTypesForResult(result)]
-                                              rightExpression:[NSExpression expressionForKeyPath:kServicesEntrySendTypesKey]
-                                                     modifier:NSAnyPredicateModifier
-                                                         type:NSInPredicateOperatorType
-                                                      options:0];
-}
-
-static NSPredicate *_ServicesPredicateForResult(const HGSResult *result)
-{
-    if (result == nil) {
-        return _ServicesPredicateIsNil();
-    }
-    return _ServicesPredicateAnyIn(result);
-}
-
-static NSArray *_ServicesListForQuery(const HGSQuery *query)
-{
-    return [CFServiceControllerCopyServicesEntries() filteredArrayUsingPredicate:_ServicesPredicateForResult([query pivotObject])];
+  HGSExtensionPoint *actions = [HGSExtensionPoint actionsPoint];
+  return [actions extensionWithIdentifier:kServicesPerformAction];
 }
 
 #pragma mark -
-@interface ServicesSource : HGSCallbackSearchSource
-- (BOOL) isValidSourceForQuery:(HGSQuery *)query;
-- (HGSResult *) resultForService:(NSDictionary *)service pivot:(HGSResult *)pivot score:(CGFloat)score;
-- (void) performSearchOperation:(HGSSearchOperation *)operation;
+#pragma mark Map Pboard types to data
+static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
+{
+  if ([result conformsToType:kHGSTypeWebpage])
+    return NSARRAY(NSURLPboardType);
+  if ([result conformsToType:kHGSTypeFile])
+    return NSARRAY(NSFilenamesPboardType);
+  if ([result conformsToType:kHGSTypeText])
+    return NSARRAY(NSStringPboardType);
+  return nil;
+}
+
+static id _ServicesObjectForType(const NSString *type, const HGSResult *result)
+{
+  if ([type isEqual:NSURLPboardType])
+    return [result url];
+  if ([type isEqual:NSFilenamesPboardType])
+    return NSARRAY([result filePath]);
+  if ([type isEqual:NSStringPboardType])
+    return [result displayName];
+  return nil;
+}
+
+static NSDictionary *_ServicesDataForResult(const HGSResult *result)
+{
+  NSMutableDictionary *data = [NSMutableDictionary dictionary];
+  for (NSString *type in _ServicesPboardTypesForResult(result))
+    [data setObject:_ServicesObjectForType(type, result) forKey:type];
+  return data;
+}
+
+#pragma mark -
+#pragma mark Predicate for compatibility with the Pivot
+static NSExpression *_ServicesExpressionSendTypes(void) {
+  NSString *keyPath= [NSString stringWithFormat:@"%@.%@",
+                      kServicesItemKey, kServicesEntrySendTypesKey];
+  return [NSExpression expressionForKeyPath:keyPath];
+}
+
+static NSPredicate *_ServicesPredicateAcceptsNil(void)
+{
+  NSExpression *empty = [NSExpression expressionForConstantValue:nil];
+  NSExpression *sendTypes = _ServicesExpressionSendTypes();
+  return [NSComparisonPredicate
+          predicateWithLeftExpression:empty
+          rightExpression:sendTypes
+          modifier:NSDirectPredicateModifier
+          type:NSEqualToPredicateOperatorType
+          options:0];
+}
+
+static NSPredicate *_ServicesPredicateAcceptsAny(const NSArray *types)
+{
+  NSExpression *givenTypes = [NSExpression expressionForConstantValue:types];
+  NSExpression *sendTypes = _ServicesExpressionSendTypes();
+  return [NSComparisonPredicate
+          predicateWithLeftExpression:givenTypes
+          rightExpression:sendTypes
+          modifier:NSAnyPredicateModifier
+          type:NSInPredicateOperatorType
+          options:0];
+}
+
+static NSPredicate *_ServicesPredicateForPivot(const HGSResult *pivot)
+{
+  if (pivot == nil)
+    return _ServicesPredicateAcceptsNil();
+  return _ServicesPredicateAcceptsAny(_ServicesPboardTypesForResult(pivot));
+}
+
+#pragma mark -
+@interface ServicesSource : HGSMemorySearchSource
+- (void)recacheContents;
+- (void)recacheContentsAfterDelay:(NSTimeInterval)delay;
+- (void)indexResultForService:(NSDictionary *)service;
+- (BOOL)isValidSourceForQuery:(HGSQuery *)query;
+- (void)processMatchingResults:(NSMutableArray*)results
+                      forQuery:(HGSQuery *)query;
 @end
 
 #pragma mark -
 @implementation ServicesSource
 
-- (BOOL) isValidSourceForQuery:(HGSQuery *)query
+- (id)initWithConfiguration:(NSDictionary *)configuration
 {
-    if (![super isValidSourceForQuery:query])
-        return NO;
-    if ([[query normalizedQueryString] length] == 0)
-        return NO;
-    return YES;
+  self = [super initWithConfiguration:configuration];
+  if (self == nil)
+    return nil;
+  if ([self loadResultsCache])
+    [self recacheContentsAfterDelay:10.0];
+  else
+    [self recacheContents];
+  return self;
 }
 
-- (HGSResult *) resultForService:(NSDictionary *)service pivot:(HGSResult *)pivot score:(CGFloat)score
+#pragma mark -
+#pragma mark Indexing Results
+- (void)recacheContentsAfterDelay:(NSTimeInterval)delay
 {
-    NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
-    NSString *name = [service valueForKeyPath:kServicesEntryNameKeyPath];
-    NSString *path = [service valueForKey:kServicesEntryBundlePathKey];
-    [attrs setObject:_ServicesSnippetForName([[NSFileManager defaultManager] displayNameAtPath:path])
-              forKey:kHGSObjectAttributeSnippetKey];
-    [attrs setObject:[[NSWorkspace sharedWorkspace] iconForFile:path]
-              forKey:kHGSObjectAttributeIconKey];
-    [attrs setObject:[NSNumber numberWithFloat:score]
-              forKey:kHGSObjectAttributeRankKey];
-    [attrs setObject:_ServicesDefaultAction()
-              forKey:kHGSObjectAttributeDefaultActionKey];
-    [attrs setObject:service forKey:kServicesItemKey];
-    [attrs setObject:name forKey:kServicesNameKey];
-    if (pivot) {
-        [attrs setObject:_ServicesDataForResult(pivot) forKey:kServicesDataKey];
-    }
-    return [HGSResult resultWithURL:_ServicesURLForName(name)
-                               name:[name lastPathComponent]
-                               type:kServicesItemResultType
-                             source:self
-                         attributes:attrs];
+  [self performSelector:@selector(recacheContents)
+             withObject:nil
+             afterDelay:delay];
 }
 
-- (void) performSearchOperation:(HGSSearchOperation *)operation
+- (void)recacheContents
 {
-    HGSQuery *query = [operation query];
-    HGSResult *pivot = [query pivotObject];
-    NSMutableArray *results = [NSMutableArray array];
-    for (NSDictionary *service in _ServicesListForQuery(query)) {
-        CGFloat score = _ServicesScoreForQuery(service, query);
-        if (score > 0) {
-            [results addObject:[self resultForService:service pivot:pivot score:score]];
-        }
-    }
-    [operation setResults:results];
+  [self clearResultIndex];
+  for (NSDictionary *service in _ServicesList())
+    [self indexResultForService:service];
+  [self recacheContentsAfterDelay:60.0];
+}
+
+- (void)indexResultForService:(NSDictionary *)service
+{
+  NSString *name = [service valueForKeyPath:kServicesEntryNameKeyPath];
+  if (isEmpty(name)) {
+    HGSLogDebug(@"%@: Skipping unnamed Service: %@", self, service);
+    return;
+  }
+  NSString *path = [service valueForKey:kServicesEntryBundlePathKey];
+  NSString *snip = [[NSFileManager defaultManager] displayNameAtPath:path];
+  NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
+  [attrs setObject:_ServicesSnippetForName(snip)
+            forKey:kHGSObjectAttributeSnippetKey];
+  [attrs setObject:[[NSWorkspace sharedWorkspace] iconForFile:path]
+            forKey:kHGSObjectAttributeIconKey];
+  [attrs setObject:_ServicesDefaultAction()
+            forKey:kHGSObjectAttributeDefaultActionKey];
+  [attrs setObject:service forKey:kServicesItemKey];
+  [attrs setObject:name forKey:kServicesNameKey];
+  [self indexResult:[HGSResult resultWithURL:_ServicesURLForName(name)
+                                        name:[name lastPathComponent]
+                                        type:kServicesItemResultType
+                                      source:self
+                                  attributes:attrs]];
+}
+
+#pragma mark -
+#pragma mark Procesing Queries
+- (BOOL)isValidSourceForQuery:(HGSQuery *)query
+{
+  if (![super isValidSourceForQuery:query])
+    return NO;
+  if (isEmpty([query normalizedQueryString]))
+    return NO;
+  return YES;
+}
+
+- (void)processMatchingResults:(NSMutableArray*)results
+                      forQuery:(HGSQuery *)query
+{
+  HGSResult *pivot = [query pivotObject];
+  [results filterUsingPredicate:_ServicesPredicateForPivot(pivot)];
+  if (pivot) {
+    NSMutableArray *filtered = [NSMutableArray array];
+    NSDictionary *data = _ServicesDataForResult(pivot);
+    NSDictionary *attrs = NSDICT(data, kServicesDataKey);
+    for (HGSResult *result in results)
+      [filtered addObject:[result resultByAddingAttributes:attrs]];
+    [results setArray:filtered];
+  }
 }
 
 @end

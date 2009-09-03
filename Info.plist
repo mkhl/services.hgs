@@ -22,6 +22,20 @@
 	<array>
 		<dict>
 			<key>HGSExtensionClass</key>
+			<string>ServicesAction</string>
+			<key>HGSExtensionPoint</key>
+			<string>HGSActionsExtensionPoint</string>
+			<key>HGSExtensionIdentifier</key>
+			<string>org.purl.net.mkhl.services.action.perform</string>
+			<key>HGSActionDirectObjectTypes</key>
+			<array>
+				<string>service</string>
+			</array>
+			<key>HGSExtensionUserVisibleName</key>
+			<string>Perform Service</string>
+		</dict>
+		<dict>
+			<key>HGSExtensionClass</key>
 			<string>ServicesSource</string>
 			<key>HGSExtensionIdentifier</key>
 			<string>org.purl.net.mkhl.services.source</string>
@@ -35,20 +49,6 @@
 				<string>file</string>
 				<string>text</string>
 			</array>
-		</dict>
-		<dict>
-			<key>HGSExtensionClass</key>
-			<string>ServicesAction</string>
-			<key>HGSExtensionPoint</key>
-			<string>HGSActionsExtensionPoint</string>
-			<key>HGSExtensionIdentifier</key>
-			<string>org.purl.net.mkhl.services.action.perform</string>
-			<key>HGSActionDirectObjectTypes</key>
-			<array>
-				<string>script.service</string>
-			</array>
-			<key>HGSExtensionUserVisibleName</key>
-			<string>Perform Service</string>
 		</dict>
 	</array>
 </dict>
