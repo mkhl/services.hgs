@@ -1,0 +1,3 @@
+[submodule "MKMacros"]
+	path = MKMacros
+	url = git://github.com/mkhl/MKMacros.git
