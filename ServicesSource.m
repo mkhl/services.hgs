@@ -61,7 +61,12 @@ static HGSAction *_ServicesDefaultAction(void)
 
 static HGSResult *_ServicesResultWithAttributes(HGSResult *result, NSDictionary *attrs)
 {
-  return [result resultByAddingAttributes:attrs];
+  // TODO: For compatibility with old Release.
+  return [HGSResult resultWithURL:[result url]
+                             name:[result displayName]
+                             type:[result type]
+                           source:[result source]
+                       attributes:attrs];
 }
 
 #pragma mark -
