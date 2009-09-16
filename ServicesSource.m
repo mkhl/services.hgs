@@ -59,6 +59,11 @@ static HGSAction *_ServicesDefaultAction(void)
   return [actions extensionWithIdentifier:kServicesPerformAction];
 }
 
+static HGSResult *_ServicesResultWithAttributes(HGSResult *result, NSDictionary *attrs)
+{
+  return [result resultByAddingAttributes:attrs];
+}
+
 #pragma mark -
 #pragma mark Map Pboard types to data
 static NSArray *_ServicesPboardTypesForResult(const HGSResult *result)
@@ -218,7 +223,7 @@ static NSPredicate *_ServicesPredicateForPivot(const HGSResult *pivot)
     NSDictionary *data = _ServicesDataForResult(pivot);
     NSDictionary *attrs = NSDICT(data, kServicesDataKey);
     for (HGSResult *result in results)
-      [filtered addObject:[result resultByAddingAttributes:attrs]];
+      [filtered addObject:_ServicesResultWithAttributes(result, attrs)];
     [results setArray:filtered];
   }
 }
